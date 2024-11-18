@@ -1,2 +1,2 @@
 # SwaggerAPI
-SwaggerAPI with postman, automation testin
+SwaggerAPI with postman, automation testing
