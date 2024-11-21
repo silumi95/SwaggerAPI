@@ -4,7 +4,7 @@ pipeline {
         POSTMAN_API_KEY = credentials('POSTMAN_API_KEY') // Securely fetch API key
     }
     tools {
-        nodejs "NodeJS14" // Adjust to match your Jenkins Node.js installation
+        nodejs "NodeJS_Latest" 
     }
     stages {
         stage('Clone GitHub Repository') {
