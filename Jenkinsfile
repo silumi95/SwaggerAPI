@@ -4,7 +4,7 @@ pipeline {
         POSTMAN_API_KEY = credentials('POSTMAN_API_KEY') // Securely fetch API key
     }
     tools {
-        nodejs "NodeJS_Latest"
+        nodejs "NodeJS_Latest" 
     }
     stages {
         stage('Clone GitHub Repository') {
@@ -16,43 +16,19 @@ pipeline {
         stage('Install Postman CLI') {
             steps {
                 echo 'Installing Postman CLI...'
-                script {
-                    try {
-                        // Ensure the PowerShell script downloads Postman CLI and doesn't rely on nohup
-                        sh '''powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -Command "
-                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-                            iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
-                        "'''
-                    } catch (Exception e) {
-                        error "Failed to install Postman CLI: ${e.getMessage()}"
-                    }
-                }
+                sh 'powershell.exe -NoProfile -InputFormat None -ExecutionPolicy AllSigned -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString(\'https://dl-cli.pstmn.io/install/win64.ps1\'))"'
             }
         }
         stage('Postman CLI Login') {
             steps {
                 echo 'Logging into Postman CLI...'
-                script {
-                    try {
-                        // Postman CLI login with the API Key
-                        sh 'postman login --with-api-key $POSTMAN_API_KEY'
-                    } catch (Exception e) {
-                        error "Failed to login to Postman CLI: ${e.getMessage()}"
-                    }
-                }
+                sh 'postman login --with-api-key $POSTMAN_API_KEY'
             }
         }
         stage('Run Postman Collection') {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
-                script {
-                    try {
-                        // Running the Postman collection
-                        sh 'postman collection run ./SwaggerPetstore.postman_collection.json'
-                    } catch (Exception e) {
-                        error "Failed to run Postman collection: ${e.getMessage()}"
-                    }
-                }
+                sh 'postman collection run ./SwaggerPetstore.postman_collection.json'
             }
         }
     }
