@@ -1,58 +1,43 @@
 pipeline {
     agent any
-
     environment {
-        // Define the path to your Postman collection
-        POSTMAN_COLLECTION_PATH = "SwaggerPetstore.postman_collection.json"
+        POSTMAN_API_KEY = credentials('POSTMAN_API_KEY') // Securely fetch API key
     }
-
+    tools {
+        nodejs "NodeJS14" // Adjust to match your Jenkins Node.js installation
+    }
     stages {
-        stage('Checkout') {
+        stage('Clone GitHub Repository') {
             steps {
-                echo 'Checking out the repository...'
-                script {
-                    // Force checkout the main branch
-                    sh 'git checkout main'
-                }
-            }}
-        // Stage to clone the repository
-        stage('Clone Repository') {
-            steps {
-                echo 'Cloning repository from GitHub...'
-                git 'https://github.com/silumi95/SwaggerAPI.git'
+                echo 'Cloning SwaggerAPI repository from GitHub...'
+                git url: 'https://github.com/silumi95/SwaggerAPI.git', branch: 'main'
             }
         }
-
-        // Stage to run Postman tests via Newman
-        stage('Run Postman Tests') {
+        stage('Install Postman CLI') {
             steps {
-                echo 'Running Postman collection with Newman...'
-                // Run the Postman collection using Newman. Adjust path as needed
-                sh 'newman run ${POSTMAN_COLLECTION_PATH}'
+                echo 'Installing Postman CLI...'
+                sh 'powershell.exe -NoProfile -InputFormat None -ExecutionPolicy AllSigned -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString(\'https://dl-cli.pstmn.io/install/win64.ps1\'))"'
             }
         }
-
-        // Stage to generate a report (optional)
-        stage('Generate Report') {
+        stage('Postman CLI Login') {
             steps {
-                echo 'Generating Postman report...'
-                // Run the collection and generate a report
-                sh 'newman run ${POSTMAN_COLLECTION_PATH} --reporters cli,html --reporter-html-export newman-report.html'
-                // Archive the generated report
-                archiveArtifacts artifacts: 'newman-report.html', allowEmptyArchive: true
+                echo 'Logging into Postman CLI...'
+                sh 'postman login --with-api-key $POSTMAN_API_KEY'
+            }
+        }
+        stage('Run Postman Collection') {
+            steps {
+                echo 'Running Postman collection from GitHub repository...'
+                sh 'postman collection run ./SwaggerPetstore.postman_collection.json'
             }
         }
     }
-
     post {
         success {
             echo 'Postman tests completed successfully!'
         }
         failure {
             echo 'Postman tests failed!'
-        }
-        always {
-            echo 'Pipeline finished.'
         }
     }
 }
