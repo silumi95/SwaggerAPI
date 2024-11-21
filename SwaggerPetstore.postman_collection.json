@@ -425,7 +425,7 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"const responseBody = pm.response.json();\r",
+											"let responseBody = pm.response.json();\r",
 											"\r",
 											"// Assert that the status code is 200\r",
 											"pm.test(\"Status code is 200\", function () {\r",
