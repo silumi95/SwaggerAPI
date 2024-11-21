@@ -16,19 +16,43 @@ pipeline {
         stage('Install Postman CLI') {
             steps {
                 echo 'Installing Postman CLI...'
-                sh 'powershell.exe -NoProfile -InputFormat None -ExecutionPolicy AllSigned -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString(\'https://dl-cli.pstmn.io/install/win64.ps1\'))"'
+                script {
+                    try {
+                        // Running the Postman CLI installer via PowerShell
+                        sh '''powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -Command "
+                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+                            iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
+                        "'''
+                    } catch (Exception e) {
+                        error "Failed to install Postman CLI: ${e.getMessage()}"
+                    }
+                }
             }
         }
         stage('Postman CLI Login') {
             steps {
                 echo 'Logging into Postman CLI...'
-                sh 'postman login --with-api-key $POSTMAN_API_KEY'
+                script {
+                    try {
+                        // Postman CLI login with the API Key
+                        sh 'postman login --with-api-key $POSTMAN_API_KEY'
+                    } catch (Exception e) {
+                        error "Failed to login to Postman CLI: ${e.getMessage()}"
+                    }
+                }
             }
         }
         stage('Run Postman Collection') {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
-                sh 'postman collection run ./SwaggerPetstore.postman_collection.json'
+                script {
+                    try {
+                        // Running the Postman collection
+                        sh 'postman collection run ./SwaggerPetstore.postman_collection.json'
+                    } catch (Exception e) {
+                        error "Failed to run Postman collection: ${e.getMessage()}"
+                    }
+                }
             }
         }
     }
