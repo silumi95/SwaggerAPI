@@ -7,6 +7,14 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out the repository...'
+                script {
+                    // Force checkout the main branch
+                    sh 'git checkout main'
+                }
+            }}
         // Stage to clone the repository
         stage('Clone Repository') {
             steps {
