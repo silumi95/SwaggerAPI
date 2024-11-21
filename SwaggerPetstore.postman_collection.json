@@ -429,7 +429,7 @@
 											"\r",
 											"// Assert that the status code is 200\r",
 											"pm.test(\"Status code is 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
+											"    pm.expect(responseBody.code).to.equal(200);\r",
 											"});\r",
 											"\r",
 											"// Check if the message contains 'File uploaded' (to ensure the file upload was successful)\r",
@@ -437,6 +437,16 @@
 											"    pm.expect(responseBody.message).to.include(\"File uploaded\");\r",
 											"});\r",
 											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
 											""
 										],
 										"type": "text/javascript",
