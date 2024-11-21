@@ -425,16 +425,15 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"let responseBody = pm.response.json();\r",
-											"\r",
-											"// Assert that the status code is 200\r",
 											"pm.test(\"Status code is 200\", function () {\r",
-											"    pm.expect(responseBody.code).to.equal(200);\r",
+											"    pm.response.to.have.status(200);  \r",
+											"    // Asserts that the status code is 200 OK\r",
 											"});\r",
 											"\r",
-											"// Check if the message contains 'File uploaded' (to ensure the file upload was successful)\r",
-											"pm.test(\"Response contains 'File uploaded' in the message\", function () {\r",
-											"    pm.expect(responseBody.message).to.include(\"File uploaded\");\r",
+											"pm.test(\"File size is greater than 0 bytes\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var fileSize = parseInt(jsonData.message.match(/(\\d+) bytes/)[1]);\r",
+											"    pm.expect(fileSize).to.be.greaterThan(0);\r",
 											"});\r",
 											"\r",
 											""
