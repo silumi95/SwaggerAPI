@@ -28,8 +28,8 @@ pipeline {
                             New-Item -ItemType Directory -Force -Path $installPath
                         }
 
-                        # Download and install Postman CLI into the custom directory
-                        iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
+                        # Install Postman CLI to the specific directory using npm
+                        npm install -g postman-cli --prefix $installPath
 
                         # List the files in the installation folder to confirm success
                         Write-Host "Listing files in $installPath"
