@@ -33,11 +33,12 @@ pipeline {
 
                         # List the files in the installation folder to confirm success
                         Write-Host "Listing files in $installPath"
-                        Get-ChildItem $installPath | Select-Object Name
+                        Get-ChildItem -Recurse -Path $installPath | Select-Object Name, Directory
 
                         # Check if Postman CLI executable exists after installation
-                        if (Test-Path "$installPath\\postman-cli.exe") {
-                            Write-Host "Postman CLI installed successfully."
+                        $postmanExe = Get-ChildItem -Recurse -Path $installPath | Where-Object { $_.Name -match 'postman-cli.exe' }
+                        if ($postmanExe) {
+                            Write-Host "Postman CLI installed successfully at: $($postmanExe.FullName)"
                         } else {
                             Write-Host "Postman CLI not found after installation."
                             exit 1
@@ -55,8 +56,10 @@ pipeline {
                 echo 'Logging into Postman CLI...'
                 powershell '''
                     # Ensure Postman CLI is available in the custom directory
-                    if (Test-Path "$env:WORKSPACE\\PostmanCLI\\postman-cli.exe") {
-                        postman login --with-api-key $POSTMAN_API_KEY
+                    $postmanExe = Get-ChildItem -Recurse -Path "$env:WORKSPACE\\PostmanCLI" | Where-Object { $_.Name -match 'postman-cli.exe' }
+                    if ($postmanExe) {
+                        Write-Host "Found Postman CLI at: $($postmanExe.FullName)"
+                        & $postmanExe.FullName login --with-api-key $POSTMAN_API_KEY
                     } else {
                         Write-Host "Postman CLI not found. Exiting..."
                         exit 1
@@ -69,13 +72,15 @@ pipeline {
                 echo 'Running Postman collection from GitHub repository...'
                 powershell '''
                     # Ensure Postman CLI is available in the custom directory
-                    if (-not (Test-Path "$env:WORKSPACE\\PostmanCLI\\postman-cli.exe")) {
+                    $postmanExe = Get-ChildItem -Recurse -Path "$env:WORKSPACE\\PostmanCLI" | Where-Object { $_.Name -match 'postman-cli.exe' }
+                    if (-not $postmanExe) {
                         Write-Host "Postman CLI not found. Exiting..."
                         exit 1
                     }
 
                     # Run the Postman collection and capture output
-                    $output = postman collection run ./SwaggerPetstore.postman_collection.json --reporters=cli,json --reporter-json-export=result.json
+                    Write-Host "Running Postman collection..."
+                    $output = & $postmanExe.FullName collection run ./SwaggerPetstore.postman_collection.json --reporters=cli,json --reporter-json-export=result.json
                     
                     # Capture and print the output of the collection run
                     Write-Host "Postman collection run output: $output"
