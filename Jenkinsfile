@@ -23,12 +23,15 @@ pipeline {
                         # Download and install Postman CLI
                         iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
                         
-                        # List files in the installation directory to verify installation
-                        Write-Host "Listing files in AppData\\Local\\Postman"
-                        Get-ChildItem "$env:USERPROFILE\\AppData\\Local\\Postman" | Select-Object Name
+                        # Correct the profile path reference for Jenkins environment
+                        $profilePath = [System.Environment]::GetEnvironmentVariable("USERPROFILE", [System.EnvironmentVariableTarget]::Process)
+                        
+                        # List files in the user's Postman directory to verify installation
+                        Write-Host "Listing files in $profilePath\\AppData\\Local\\Postman"
+                        Get-ChildItem "$profilePath\\AppData\\Local\\Postman" | Select-Object Name
                         
                         # Check if Postman CLI has been installed
-                        if (Test-Path "$env:USERPROFILE\\AppData\\Local\\Postman\\postman-cli.exe") {
+                        if (Test-Path "$profilePath\\AppData\\Local\\Postman\\postman-cli.exe") {
                             Write-Host "Postman CLI installed successfully."
                         } else {
                             Write-Host "Postman CLI not found after installation."
