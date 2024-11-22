@@ -8,6 +8,12 @@ pipeline {
         nodejs "NodeJS_Latest" // Node.js configured in Jenkins
     }
     stages {
+        stage('Workspace Cleanup') {
+            steps {
+                echo 'Cleaning up the workspace...'
+                deleteDir() // Clean up the workspace before starting
+            }
+        }
         stage('Clone GitHub Repository') {
             steps {
                 echo 'Cloning SwaggerAPI repository from GitHub...'
@@ -26,8 +32,8 @@ pipeline {
         stage('Verify Tools') {
             steps {
                 echo 'Verifying NodeJS and Postman CLI installation...'
-                bat 'node --version'
-                bat 'postman --version'
+                powershell 'node --version'
+                powershell 'postman --version'
             }
         }
         stage('Postman CLI Login') {
@@ -41,35 +47,28 @@ pipeline {
                 echo 'Running Postman collection with detailed reporting...'
                 powershell '''
                     postman collection run .\\SwaggerPetstore.postman_collection.json `
-                    --reporters cli,junit,htmlextra `
-                    --reporter-junit-export results.xml `
-                    --reporter-htmlextra-export report.html
+                    --reporters cli,junit `
+                    --reporter-junit-export .\\results.xml
                 '''
             }
         }
         stage('Publish Test Results') {
             steps {
                 echo 'Publishing JUnit test results...'
-                junit 'results.xml'
-                publishHTML([
-                    reportDir: '.',
-                    reportFiles: 'report.html',
-                    reportName: 'Postman Test Report',
-                    keepAll: true
-                ])
+                junit 'results.xml'  // Points to the generated results.xml file
             }
         }
     }
     post {
+        always {
+            echo 'Archiving all files for debugging...'
+            archiveArtifacts artifacts: '**/*', allowEmptyArchive: true // Archive all workspace files for inspection
+        }
         success {
             echo 'Postman tests completed successfully!'
         }
         failure {
             echo 'Postman tests failed!'
-        }
-        always {
-            echo 'Archiving test results...'
-            archiveArtifacts artifacts: 'results.xml, report.html', allowEmptyArchive: true
         }
     }
 }
