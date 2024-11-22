@@ -23,7 +23,7 @@ pipeline {
                     iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
                     
                     # Validate Postman CLI installation
-                    if (Test-Path "$env:USERPROFILE\AppData\Local\Postman\postman-cli.exe") {
+                    if (Test-Path "$env:USERPROFILE\\AppData\\Local\\Postman\\postman-cli.exe") {
                         Write-Host "Postman CLI installed successfully."
                     } else {
                         Write-Host "Postman CLI installation failed."
