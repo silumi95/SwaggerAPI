@@ -20,25 +20,22 @@ pipeline {
                 powershell '''
                     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
                     try {
-                        # Define a custom installation path within the Jenkins workspace or user profile
-                        $installPath = "$env:USERPROFILE\\PostmanCLI"
-                        
-                        # Download and install Postman CLI into the custom directory
-                        iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
+                        # Define the custom installation path within the Jenkins workspace
+                        $installPath = "$env:WORKSPACE\\PostmanCLI"
 
-                        # Create the installation folder if it doesn't exist
+                        # Ensure the installation folder exists
                         if (-not (Test-Path $installPath)) {
                             New-Item -ItemType Directory -Force -Path $installPath
                         }
 
-                        # Move the Postman CLI files to the installation folder
-                        Move-Item -Path "$env:USERPROFILE\\AppData\\Local\\Postman" -Destination $installPath -Force
+                        # Download and install Postman CLI into the custom directory
+                        iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
 
-                        # List the files to confirm successful installation
+                        # List the files in the installation folder to confirm success
                         Write-Host "Listing files in $installPath"
                         Get-ChildItem $installPath | Select-Object Name
 
-                        # Check if Postman CLI has been installed
+                        # Check if Postman CLI executable exists after installation
                         if (Test-Path "$installPath\\postman-cli.exe") {
                             Write-Host "Postman CLI installed successfully."
                         } else {
@@ -47,7 +44,7 @@ pipeline {
                         }
                     }
                     catch {
-                        Write-Host "An error occurred during the installation process: $_"
+                        Write-Host "An error occurred during installation: $_"
                         exit 1
                     }
                 '''
@@ -57,8 +54,8 @@ pipeline {
             steps {
                 echo 'Logging into Postman CLI...'
                 powershell '''
-                    # Ensure Postman CLI is available
-                    if (Test-Path "$env:USERPROFILE\\PostmanCLI\\postman-cli.exe") {
+                    # Ensure Postman CLI is available in the custom directory
+                    if (Test-Path "$env:WORKSPACE\\PostmanCLI\\postman-cli.exe") {
                         postman login --with-api-key $POSTMAN_API_KEY
                     } else {
                         Write-Host "Postman CLI not found. Exiting..."
@@ -71,8 +68,8 @@ pipeline {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
                 powershell '''
-                    # Ensure Postman CLI is available
-                    if (-not (Test-Path "$env:USERPROFILE\\PostmanCLI\\postman-cli.exe")) {
+                    # Ensure Postman CLI is available in the custom directory
+                    if (-not (Test-Path "$env:WORKSPACE\\PostmanCLI\\postman-cli.exe")) {
                         Write-Host "Postman CLI not found. Exiting..."
                         exit 1
                     }
