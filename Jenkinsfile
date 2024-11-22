@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo 'Installing Newman HTML Reporter...'
                 powershell '''
-                    npm install -g newman-reporter-html
+                    npm install -g newman-reporter-htmlextra
                 '''
             }
         }
@@ -40,13 +40,23 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
-                powershell 'newman run ./SwaggerPetstore.postman_collection.json --reporters cli,html --reporter-html-export ./report.html'
+                powershell '''
+                    newman run ./SwaggerPetstore.postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export ./report.html
+                '''
             }
         }
         stage('Archive HTML Report') {
             steps {
                 echo 'Archiving Postman HTML Report...'
-                archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
+                script {
+                    // Make sure the report exists
+                    def reportExists = fileExists 'report.html'
+                    if (reportExists) {
+                        archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
+                    } else {
+                        echo 'Report not found, skipping archive step.'
+                    }
+                }
             }
         }
     }
