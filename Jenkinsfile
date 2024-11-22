@@ -23,6 +23,10 @@ pipeline {
                         # Download and install Postman CLI
                         iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
                         
+                        # List files in the installation directory to verify installation
+                        Write-Host "Listing files in AppData\\Local\\Postman"
+                        Get-ChildItem "$env:USERPROFILE\\AppData\\Local\\Postman" | Select-Object Name
+                        
                         # Check if Postman CLI has been installed
                         if (Test-Path "$env:USERPROFILE\\AppData\\Local\\Postman\\postman-cli.exe") {
                             Write-Host "Postman CLI installed successfully."
