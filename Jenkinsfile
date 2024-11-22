@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo 'Installing Newman HTML Reporter...'
                 powershell '''
-                    npm install -g newman-reporter-htmlextra
+                    npm install newman-reporter-htmlextra
                 '''
             }
         }
