@@ -20,18 +20,26 @@ pipeline {
                 powershell '''
                     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
                     try {
-                        # Download and install Postman CLI
+                        # Define a custom installation path within the Jenkins workspace or user profile
+                        $installPath = "$env:USERPROFILE\\PostmanCLI"
+                        
+                        # Download and install Postman CLI into the custom directory
                         iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
-                        
-                        # Correct the profile path reference for Jenkins environment
-                        $profilePath = [System.Environment]::GetEnvironmentVariable("USERPROFILE", [System.EnvironmentVariableTarget]::Process)
-                        
-                        # List files in the user's Postman directory to verify installation
-                        Write-Host "Listing files in $profilePath\\AppData\\Local\\Postman"
-                        Get-ChildItem "$profilePath\\AppData\\Local\\Postman" | Select-Object Name
-                        
+
+                        # Create the installation folder if it doesn't exist
+                        if (-not (Test-Path $installPath)) {
+                            New-Item -ItemType Directory -Force -Path $installPath
+                        }
+
+                        # Move the Postman CLI files to the installation folder
+                        Move-Item -Path "$env:USERPROFILE\\AppData\\Local\\Postman" -Destination $installPath -Force
+
+                        # List the files to confirm successful installation
+                        Write-Host "Listing files in $installPath"
+                        Get-ChildItem $installPath | Select-Object Name
+
                         # Check if Postman CLI has been installed
-                        if (Test-Path "$profilePath\\AppData\\Local\\Postman\\postman-cli.exe") {
+                        if (Test-Path "$installPath\\postman-cli.exe") {
                             Write-Host "Postman CLI installed successfully."
                         } else {
                             Write-Host "Postman CLI not found after installation."
@@ -50,7 +58,7 @@ pipeline {
                 echo 'Logging into Postman CLI...'
                 powershell '''
                     # Ensure Postman CLI is available
-                    if (Get-Command postman -ErrorAction SilentlyContinue) {
+                    if (Test-Path "$env:USERPROFILE\\PostmanCLI\\postman-cli.exe") {
                         postman login --with-api-key $POSTMAN_API_KEY
                     } else {
                         Write-Host "Postman CLI not found. Exiting..."
@@ -64,11 +72,11 @@ pipeline {
                 echo 'Running Postman collection from GitHub repository...'
                 powershell '''
                     # Ensure Postman CLI is available
-                    if (-not (Get-Command postman -ErrorAction SilentlyContinue)) {
+                    if (-not (Test-Path "$env:USERPROFILE\\PostmanCLI\\postman-cli.exe")) {
                         Write-Host "Postman CLI not found. Exiting..."
                         exit 1
                     }
-                    
+
                     # Run the Postman collection and capture output
                     $output = postman collection run ./SwaggerPetstore.postman_collection.json --reporters=cli,json --reporter-json-export=result.json
                     
