@@ -41,7 +41,8 @@ pipeline {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
                 powershell '''
-                    newman run ./SwaggerPetstore.postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export ./report.html
+                    # Run Newman with the HTML reporter, specifying an absolute path for the report
+                    newman run ./SwaggerPetstore.postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export "C:\\Jenkins\\workspace\\$JOB_NAME\\report.html"
                 '''
             }
         }
@@ -49,10 +50,13 @@ pipeline {
             steps {
                 echo 'Archiving Postman HTML Report...'
                 script {
-                    // Make sure the report exists
-                    def reportExists = fileExists 'report.html'
+                    // Use absolute path for the report
+                    def reportPath = 'C:\\Jenkins\\workspace\\$JOB_NAME\\report.html'
+                    // Check if the report exists
+                    def reportExists = fileExists reportPath
                     if (reportExists) {
-                        archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
+                        echo 'Report found. Archiving...'
+                        archiveArtifacts artifacts: reportPath, allowEmptyArchive: true
                     } else {
                         echo 'Report not found, skipping archive step.'
                     }
