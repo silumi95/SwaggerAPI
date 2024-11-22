@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         POSTMAN_API_KEY = credentials('POSTMAN_API_KEY')
-        DISABLE_GPU = 'true' // Disable GPU hardware acceleration
+        DISABLE_GPU = 'true' // Disable GPU if necessary
     }
     tools {
         nodejs "NodeJS_Latest"
@@ -32,7 +32,7 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 echo 'Running Postman collection from GitHub repository...'
-                powershell 'postman collection run ./SwaggerPetstore.postman_collection.json --reporters cli,html --reporter-html-export report.html'
+                powershell 'newman run ./SwaggerPetstore.postman_collection.json --reporters cli,html --reporter-html-export ./report.html'
             }
         }
         stage('Archive HTML Report') {
