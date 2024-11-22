@@ -19,14 +19,20 @@ pipeline {
                 echo 'Installing Postman CLI...'
                 powershell '''
                     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-                    # Download and install Postman CLI
-                    iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
-                    
-                    # Validate Postman CLI installation
-                    if (Test-Path "$env:USERPROFILE\\AppData\\Local\\Postman\\postman-cli.exe") {
-                        Write-Host "Postman CLI installed successfully."
-                    } else {
-                        Write-Host "Postman CLI installation failed."
+                    try {
+                        # Download and install Postman CLI
+                        iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))
+                        
+                        # Check if Postman CLI has been installed
+                        if (Test-Path "$env:USERPROFILE\\AppData\\Local\\Postman\\postman-cli.exe") {
+                            Write-Host "Postman CLI installed successfully."
+                        } else {
+                            Write-Host "Postman CLI not found after installation."
+                            exit 1
+                        }
+                    }
+                    catch {
+                        Write-Host "An error occurred during the installation process: $_"
                         exit 1
                     }
                 '''
@@ -36,7 +42,7 @@ pipeline {
             steps {
                 echo 'Logging into Postman CLI...'
                 powershell '''
-                    # Check if Postman CLI is available
+                    # Ensure Postman CLI is available
                     if (Get-Command postman -ErrorAction SilentlyContinue) {
                         postman login --with-api-key $POSTMAN_API_KEY
                     } else {
