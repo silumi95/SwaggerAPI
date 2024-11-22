@@ -23,6 +23,14 @@ pipeline {
                 '''
             }
         }
+        stage('Install Newman Reporter') {
+            steps {
+                echo 'Installing Newman HTML Reporter...'
+                powershell '''
+                    npm install -g newman-reporter-html
+                '''
+            }
+        }
         stage('Postman CLI Login') {
             steps {
                 echo 'Logging into Postman CLI...'
