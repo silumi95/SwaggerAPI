@@ -46,46 +46,39 @@ pipeline {
                     // Iterate over the lines to extract relevant details
                     lines.each { line ->
                         if (line.contains('ms]')) {
-                            try {
-                                // Extract response time (e.g., "45ms")
-                                def responseTimeMatch = (line =~ /(\d+ms)/)
-                                def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
+                            // Extract response time (between 'ms]' and 'ms')
+                            def responseTimeMatch = (line =~ /(\d+ms)/)
+                            def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
 
-                                // Match HTTP method and endpoint (e.g., "POST https://example.com/api")
-                                def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
-                                def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
-                                def endpoint = methodEndpointMatch ? methodEndpointMatch[0][2] : 'Unknown'
+                            // Match HTTP method and endpoint using improved regex
+                            def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
+                            def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
+                            def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
+                        
 
-                                // Skip this line if any required data is missing
-                                if (!responseTime || !method || !endpoint) {
-                                    return // Skip this iteration
-                                }
+                            // Extract base path (up to the first three segments of the URL)
+                            def shortenedEndpoint = getBasePath(endpoint)
+                            def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
-                                // Extract base path (up to the first three segments of the URL)
-                                def shortenedEndpoint = getBasePath(endpoint)
+                           // Define the maximum length for each column to ensure proper alignment
+def methodWidth = 10
+def endpointWidth = 30
+def statusWidth = 7
+def responseTimeWidth = 15
 
-                                // Determine status (e.g., "Pass" for "200 OK")
-                                def status = line.contains('200 OK') ? 'Pass' : 'Fail'
+// Format the data to match the column widths
+def formattedMethod = method.padRight(methodWidth)
+def formattedEndpoint = shortenedEndpoint.padRight(endpointWidth)
+def formattedStatus = status.padRight(statusWidth)
+def formattedResponseTime = responseTime.padRight(responseTimeWidth)
 
-                                // Define column widths for alignment
-                                def methodWidth = 10
-                                def endpointWidth = 30
-                                def statusWidth = 7
-                                def responseTimeWidth = 15
+// Append the formatted data to the table output
+tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
+if (index == lines.size() - 1) {
+                return // This ends the loop
+            }
 
-                                // Format the data for alignment in the table
-                                def formattedMethod = method.padRight(methodWidth)
-                                def formattedEndpoint = shortenedEndpoint.padRight(endpointWidth)
-                                def formattedStatus = status.padRight(statusWidth)
-                                def formattedResponseTime = responseTime.padRight(responseTimeWidth)
-
-                                // Append the formatted data to the table output
-                                tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
-
-                            } catch (Exception e) {
-                                // Log the error and skip the problematic line
-                                echo "Error processing line: ${line}. Skipping..."
-                            }
                         }
                     }
 
