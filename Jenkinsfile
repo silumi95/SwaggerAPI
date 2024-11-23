@@ -34,16 +34,26 @@ pipeline {
                     // Run the Postman collection using Newman with CLI output
                     def newmanOutput = bat(script: "newman run ${COLLECTION_PATH} --reporters cli", returnStdout: true).trim()
 
-                    // Print the Newman output to the console (for reference)
+                    // Print the full output to Jenkins console to inspect the format
                     echo "Newman Output:\n${newmanOutput}"
 
                     // Split the output by lines
                     def outputLines = newmanOutput.split("\n")
 
-                    // Count passed, failed, and skipped tests based on the symbols used in the output
-                    def passedTests = outputLines.count { it.contains('✓') }  // Passed tests contain a tick (✓)
-                    def failedTests = outputLines.count { it.contains('✘') }  // Failed tests contain a cross (✘)
-                    def skippedTests = outputLines.count { it.contains('⚠') }  // Skipped tests contain a warning (⚠)
+                    // Debug: Print the first few lines to ensure we're getting the expected output
+                    echo "First few lines of output:\n${outputLines.take(5).join("\n")}"
+
+                    // Initialize counters
+                    def passedTests = 0
+                    def failedTests = 0
+                    def skippedTests = 0
+
+                    // Check for specific keywords in the output for passing, failing, and skipped tests
+                    outputLines.each { line ->
+                        if (line.contains('✔')) { passedTests++ }  // Passed tests contain a checkmark (✔)
+                        if (line.contains('✘')) { failedTests++ }  // Failed tests contain a cross (✘)
+                        if (line.contains('⚠')) { skippedTests++ }  // Skipped tests contain a warning (⚠)
+                    }
 
                     // Print the table to console
                     echo """
