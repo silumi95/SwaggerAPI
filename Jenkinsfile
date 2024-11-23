@@ -61,7 +61,7 @@ pipeline {
                             def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${method}       | ${shortenedEndpoint}  | ${status} | ${responseTime} |\n"
+                            tableOutput += "| ${method}| ${shortenedEndpoint}           | ${status} | ${responseTime} |\n"
                         }
                     }
 
