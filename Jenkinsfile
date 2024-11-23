@@ -60,8 +60,21 @@ pipeline {
                             def shortenedEndpoint = getBasePath(endpoint)
                             def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
-                            // Append the data to the table output
-                            tableOutput += "| ${method}| ${shortenedEndpoint}           | ${status} | ${responseTime} |\n"
+                           // Define the maximum length for each column to ensure proper alignment
+def methodWidth = 10
+def endpointWidth = 30
+def statusWidth = 7
+def responseTimeWidth = 15
+
+// Format the data to match the column widths
+def formattedMethod = method.padRight(methodWidth)
+def formattedEndpoint = shortenedEndpoint.padRight(endpointWidth)
+def formattedStatus = status.padRight(statusWidth)
+def formattedResponseTime = responseTime.padRight(responseTimeWidth)
+
+// Append the formatted data to the table output
+tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
+
                         }
                     }
 
