@@ -36,8 +36,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint                 | Status | Response Time|
-|-------------|------------------------------|--------|--------------|
+| HTTP Method | API Endpoint                 | Status | Response Time |
+|:-----------:|:----------------------------:|:------:|---------------:|
 """
 
                     // Split the output into lines for parsing
