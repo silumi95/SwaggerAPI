@@ -4,16 +4,16 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout the repository from GitHub
-                git 'https://github.com/silumi95/SwaggerAPI.git'  // Update with your repo URL
+                // Clone the GitHub repository containing your Postman collection
+                git 'https://github.com/silumi95/SwaggerAPI.git'  // Replace with your GitHub repo URL
             }
         }
         
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Install Node.js and Newman if not installed (you may skip this if Node.js and Newman are already installed on the Jenkins server)
-                    sh 'npm install -g newman'  // Install Newman
+                    // Install Node.js and Newman if not installed
+                    bat 'npm install -g newman'  // This is for running the command on Windows (use 'bat' for Windows)
                 }
             }
         }
@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script {
                     // Run the Postman collection using Newman
-                    sh 'newman run SwaggerAPI/postman_collection.json'  // Path to your Postman collection file
+                    bat 'newman run SwaggerAPI/postman_collection.json'  // Path to your Postman collection file
                 }
             }
         }
@@ -30,7 +30,7 @@ pipeline {
     
     post {
         always {
-            // You can add actions like cleaning up or notifications here if needed
+            // Add actions to be performed after the pipeline (e.g., notifications, cleanup, etc.)
             echo 'Postman tests executed.'
         }
         
