@@ -36,8 +36,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint                                                 | Status | Response Time |
-|-------------|--------------------------------------------------------------|--------|---------------|
+| HTTP Method | API Endpoint                     | Status | Response Time |
+|-------------|----------------------------------|--------|---------------|
 """
 
                     // Split the output into lines for parsing
@@ -64,7 +64,7 @@ pipeline {
                             def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${method} | ${shortenedEndpoint}                          | ${status} | ${responseTime}|\n"
+                            tableOutput += "| ${method}      | ${shortenedEndpoint}                     | ${status} | ${responseTime}|\n"
                         }
                     }
 
