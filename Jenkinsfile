@@ -1,70 +1,70 @@
 pipeline {
     agent any
-    
+
     environment {
-        // Path to the Newman results file
-        RESULT_PATH = 'path/to/newman-results.json'
+        // Define the path to your Postman collection in the GitHub repo
+        COLLECTION_PATH = 'SwaggerPetstore.postman_collection.json'
     }
 
     stages {
-        stage('Run Tests') {
+        stage('Checkout') {
             steps {
-                // Assuming you have a stage that runs Newman tests
-                sh 'newman run collection.json -r json --reporter-json-export newman-results.json'
+                // Clone the public GitHub repository from the main branch
+                git branch: 'main', url: 'https://github.com/silumi95/SwaggerAPI.git'
             }
         }
 
-        stage('Display Test Results') {
+        stage('Install Node.js') {
+            steps {
+                // Install Node.js if not already installed (optional)
+                bat 'npm install -g node'
+            }
+        }
+
+        stage('Install Newman') {
+            steps {
+                // Install Newman using npm during the pipeline execution
+                bat 'npm install -g newman'
+            }
+        }
+
+        stage('Run Postman Collection') {
             steps {
                 script {
-                    // Read the JSON result file using readFile and Groovy's JsonSlurper
-                    def jsonContent = readFile(RESULT_PATH)
-                    echo "Raw JSON content:\n${jsonContent}"
+                    // Run the Postman collection using Newman with CLI output
+                    def newmanOutput = bat(script: "newman run ${COLLECTION_PATH} --reporters cli", returnStdout: true).trim()
 
-                    def jsonSlurper = new groovy.json.JsonSlurper()
-                    def resultJson = jsonSlurper.parseText(jsonContent)
+                    // Print the Newman output to the console (for reference)
+                    echo "Newman Output:\n${newmanOutput}"
 
-                    // Output results as a table to the console
-                    echo "\nTest Results:"
-                    def tableHeader = "Test Name | Status | Response Time (ms) | Assertions"
-                    echo tableHeader
-                    echo "---------------------------------------------------------"
+                    // Optionally, you can parse the output to display in a tabular format
+                    // Simple example: Parse for some key metrics (like passed, failed, and skipped)
+                    
+                    // Count number of passed, failed, skipped tests
+                    def passedTests = newmanOutput.count { it.contains('✓') }  // Passed tests contain a tick (✓)
+                    def failedTests = newmanOutput.count { it.contains('✘') }  // Failed tests contain a cross (✘)
+                    def skippedTests = newmanOutput.count { it.contains('⚠') }  // Skipped tests contain a warning (⚠)
 
-                    // Check if executions array is empty
-                    if (resultJson.run.executions.isEmpty()) {
-                        echo "No tests found in the Newman results."
-                    } else {
-                        // Iterate over each item in the results and print a row in the table
-                        resultJson.run.executions.each { execution ->
-                            def testName = execution.test.name
-                            def status = execution.assertions.any { it.passed } ? "Passed" : "Failed"
-                            def responseTime = execution.response.time
-                            def assertions = execution.assertions.size()
-
-                            // Print each test result in a table-like format
-                            echo "${testName} | ${status} | ${responseTime} | ${assertions}"
-                        }
-                    }
+                    // Print the table to console
+                    echo """
+                    Test Results Summary:
+                    +------------------+---------+
+                    | Test Status      | Count   |
+                    +------------------+---------+
+                    | Passed           | ${passedTests}   |
+                    | Failed           | ${failedTests}   |
+                    | Skipped          | ${skippedTests}  |
+                    +------------------+---------+
+                    """
                 }
-            }
-        }
-
-        stage('Publish Results') {
-            steps {
-                echo 'Publish stage logic here (e.g., publishing to JUnit, Slack, etc.)'
-            }
-        }
-
-        stage('Post Actions') {
-            steps {
-                echo 'Post actions after test results are processed'
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline finished"
+            // Final steps, for cleanup or notifications
+            echo 'Pipeline finished'
         }
     }
 }
