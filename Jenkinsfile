@@ -47,17 +47,21 @@ pipeline {
 
                     // Iterate over the lines to extract relevant details
                     lines.each { line ->
-                        // Check for lines that contain API endpoint info
-                        if (line.contains('POST') || line.contains('PUT') || line.contains('GET') || line.contains('DELETE')) {
-                            // Extract status and other info based on pattern
-                            def status = line.contains('200 OK') ? 'Success' : 'Failed'
+                        // Only process lines containing HTTP method, status code, and response time
+                        if (line.contains('ms]')) {
+                            // Extract response time (between 'ms]' and 'ms')
+                            def responseTimeMatch = (line =~ /(\d+ms)/)
+                            def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
+
+                            // Try to capture the HTTP method and endpoint (assuming it's in the line starting with the method)
+                            def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
+
+                            // Extract pet name if available (customize based on your actual response content)
                             def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : 'Fluffy'
-                            
-                            // Extract the API endpoint (assuming it's the second word in the line)
-                            def endpoint = line.split(' ')[1] // Get the HTTP method and endpoint
-                            
-                            // Extract the response time (assuming it's in the second column)
-                            def responseTime = line.split(',')[2]?.trim() ?: 'N/A' // Default to 'N/A' if no response time found
+
+                            // Status based on response time or other indicators (use success or failure based on response)
+                            def status = line.contains('200 OK') ? 'Success' : 'Failed'
 
                             // Append the data to the table output
                             tableOutput += "| ${endpoint} | ${status} | ${responseTime} | ${petName} |\n"
