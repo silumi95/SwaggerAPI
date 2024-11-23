@@ -38,8 +38,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| API Endpoint                                    | Status      | Response Time |
-|-------------------------------------------------|-------------|---------------|
+| API Endpoint                                                                                                                         | Status      |
+|--------------------------------------------------------------------------------------------------------------------------------------|-------------|
 """
 
                     // Split the output into lines for parsing
@@ -49,22 +49,17 @@ pipeline {
                     lines.each { line ->
                         // Only process lines containing HTTP method, status code, and response time
                         if (line.contains('ms]')) {
-                            // Extract response time (between 'ms]' and 'ms')
-                            def responseTimeMatch = (line =~ /(\d+ms)/)
-                            def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
-
+                            
                             // Try to capture the HTTP method and endpoint (assuming it's in the line starting with the method)
                             def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
                             def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
 
-                            // Extract pet name if available (customize based on your actual response content)
-                            def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : 'Fluffy'
-
+                         
                             // Status based on response time or other indicators (use success or failure based on response)
-                            def status = line.contains('200 OK') ? 'Success' : 'Failed'
+                            def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${endpoint} | ${status} | ${responseTime} |\n"
+                            tableOutput += "| ${endpoint}                                                       | ${status} |\n"
                         }
                     }
 
