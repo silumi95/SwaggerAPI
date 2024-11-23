@@ -38,8 +38,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| API Endpoint               | Status   | Response Time | Pet Name         |
-|----------------------------|----------|---------------|------------------|
+| API Endpoint                                    | Status      | Response Time |
+|-------------------------------------------------|-------------|---------------|
 """
 
                     // Split the output into lines for parsing
@@ -64,7 +64,7 @@ pipeline {
                             def status = line.contains('200 OK') ? 'Success' : 'Failed'
 
                             // Append the data to the table output
-                            tableOutput += "| ${endpoint} | ${status} | ${responseTime} | ${petName} |\n"
+                            tableOutput += "| ${endpoint} | ${status} | ${responseTime} |\n"
                         }
                     }
 
