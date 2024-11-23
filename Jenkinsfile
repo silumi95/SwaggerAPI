@@ -41,20 +41,19 @@ pipeline {
                     // Print the full output to Jenkins console to inspect the format
                     echo "Newman Output:\n${newmanOutput}"
 
-                    // Optional: You can add custom logic to handle the results further.
-                    // If you'd like, you can count passed, failed, and skipped tests here again:
+                    // Optional: Process the output to count passed, failed, and skipped tests
                     def passedTests = 0
                     def failedTests = 0
                     def skippedTests = 0
 
-                    // Here we process the results if you'd like to output them in a table format
+                    // Check if the output contains test statuses and increment the counters accordingly
                     newmanOutput.split("\n").each { line ->
                         if (line.contains('✔')) { passedTests++ }  // Passed tests contain a checkmark (✔)
                         if (line.contains('✘')) { failedTests++ }  // Failed tests contain a cross (✘)
                         if (line.contains('⚠')) { skippedTests++ }  // Skipped tests contain a warning (⚠)
                     }
 
-                    // Print the summary to Jenkins console
+                    // Ensure the output contains a summary (sometimes Newman output might not include a simple table)
                     echo """
                     Test Results Summary:
                     +------------------+---------+
