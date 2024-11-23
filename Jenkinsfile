@@ -37,11 +37,11 @@ pipeline {
                     // Print the full output to Jenkins console to inspect the format
                     echo "Newman Output:\n${newmanOutput}"
 
-                    // Split the output by lines
-                    def outputLines = newmanOutput.split("\n")
+                    // Remove unwanted characters or fix encoding issues in the output
+                    def sanitizedOutput = newmanOutput.replaceAll("[^\\x00-\\x7F]", "") // Removes non-ASCII characters
 
-                    // Debug: Print the first few lines to ensure we're getting the expected output
-                    echo "First few lines of output:\n${outputLines.take(5).join("\n")}"
+                    // Split the sanitized output by lines
+                    def outputLines = sanitizedOutput.split("\n")
 
                     // Initialize counters
                     def passedTests = 0
