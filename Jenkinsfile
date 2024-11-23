@@ -36,8 +36,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint | Status | Response Time | Pet Name |
-|-------------|--------------|--------|---------------|----------|
+| HTTP Method | API Endpoint                                                 | Status | Response Time |
+|-------------|--------------------------------------------------------------|--------|---------------|
 """
 
                     // Split the output into lines for parsing
@@ -49,7 +49,10 @@ pipeline {
                             // Extract response time (between 'ms]' and 'ms')
                             def responseTimeMatch = (line =~ /(\d+ms)/)
                             def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
-
+                            // Capture the HTTP method and endpoint
+                            def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
+                           
                             // Match HTTP method and endpoint using improved regex
                             def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
                             def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
@@ -58,11 +61,10 @@ pipeline {
                             def shortenedEndpoint = getBasePath(endpoint)
 
                             // Handle Pet Name and Status
-                            def petName = 'Fluffy' // Default pet name (customize based on your actual response)
-                            def status = line.contains('200 OK') ? 'Success' : 'Failed'
+                            def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${endpoint.split(' ')[0]} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
+                            tableOutput += "| ${method} | ${shortenedEndpoint}                          | ${status} | ${responseTime}|\n"
                         }
                     }
 
