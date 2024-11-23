@@ -31,42 +31,19 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 script {
-                    // Run the Postman collection using Newman with CLI output
-                    def newmanOutput = bat(script: "newman run ${COLLECTION_PATH} --reporters cli", returnStdout: true).trim()
-
-                    // Print the full output to Jenkins console to inspect the format
-                    echo "Newman Output:\n${newmanOutput}"
-
-                    // Remove unwanted characters or fix encoding issues in the output
-                    def sanitizedOutput = newmanOutput.replaceAll("[^\\x00-\\x7F]", "") // Removes non-ASCII characters
-
-                    // Split the sanitized output by lines
-                    def outputLines = sanitizedOutput.split("\n")
-
-                    // Initialize counters
-                    def passedTests = 0
-                    def failedTests = 0
-                    def skippedTests = 0
-
-                    // Check for specific keywords in the output for passing, failing, and skipped tests
-                    outputLines.each { line ->
-                        if (line.contains('✔')) { passedTests++ }  // Passed tests contain a checkmark (✔)
-                        if (line.contains('✘')) { failedTests++ }  // Failed tests contain a cross (✘)
-                        if (line.contains('⚠')) { skippedTests++ }  // Skipped tests contain a warning (⚠)
-                    }
-
-                    // Print the table to console
-                    echo """
-                    Test Results Summary:
-                    +------------------+---------+
-                    | Test Status      | Count   |
-                    +------------------+---------+
-                    | Passed           | ${passedTests}   |
-                    | Failed           | ${failedTests}   |
-                    | Skipped          | ${skippedTests}  |
-                    +------------------+---------+
-                    """
+                    // Run the Postman collection using Newman with CLI and JUnit reporter
+                    bat "newman run ${COLLECTION_PATH} --reporters cli,junit --reporter-junit-export newman/report.xml"
+                    
+                    // Print the result to the Jenkins console for debugging purposes (optional)
+                    echo "Newman tests have finished running"
                 }
+            }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                // Publish JUnit test results to Jenkins
+                junit '**/newman/report.xml'  // Adjust path if necessary
             }
         }
     }
