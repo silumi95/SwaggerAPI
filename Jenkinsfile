@@ -1,41 +1,40 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS_Latest'  // Ensure NodeJS is installed, required for Newman
+    environment {
+        // Define the path to your Postman collection in the GitHub repo
+        COLLECTION_PATH = 'SwaggerPetstore.postman_collection.json'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                // Clone the GitHub repository that contains the Postman collection
-                git 'https://github.com/silumi95/SwaggerAPI.git'
+                // Clone the public GitHub repository from the main branch
+                git branch: 'main', url: 'https://github.com/silumi95/SwaggerAPI.git'
             }
         }
 
         stage('Install Newman') {
             steps {
-                script {
-                    // Install Newman globally
-                    bat 'npm install -g newman'
-                }
+                // Install Newman using npm during the pipeline execution
+                bat 'npm install -g newman'
             }
         }
 
         stage('Run Postman Collection') {
             steps {
                 script {
-                    // Run the Postman collection from the cloned repo using Newman
-                    bat 'newman run SwaggerAPI/postman_collection.json -r html --reporter-html-export newman-report.html'
+                    // Run the Postman collection using Newman
+                    bat "newman run ${COLLECTION_PATH} --reporters cli"
                 }
             }
         }
+    }
 
-        stage('Archive Reports') {
-            steps {
-                // Archive the generated HTML report after the tests
-                archiveArtifacts artifacts: 'newman-report.html', allowEmptyArchive: true
-            }
+    post {
+        always {
+            // Final steps, for cleanup or notifications
+            echo 'Pipeline finished'
         }
     }
 }
