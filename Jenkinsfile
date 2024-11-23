@@ -36,8 +36,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint | Status | Response Time | Pet Name |
-|-------------|--------------|--------|---------------|----------|
+| HTTP Method | API Endpoint                 | Status | Response Time|
+|-------------|------------------------------|--------|--------------|
 """
 
                     // Split the output into lines for parsing
@@ -58,13 +58,10 @@ pipeline {
 
                             // Extract base path (up to the first three segments of the URL)
                             def shortenedEndpoint = getBasePath(endpoint)
-
-                            // Handle Pet Name and Status
-                            def petName = 'Fluffy' // Default pet name (customize based on your actual response)
                             def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${method} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
+                            tableOutput += "| ${method}       | ${shortenedEndpoint}  | ${status} | ${responseTime} | ${petName} |\n"
                         }
                     }
 
