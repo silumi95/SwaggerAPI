@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS'  // Ensure NodeJS is installed, required for Newman
+        nodejs 'NodeJS_Latest'  // Ensure NodeJS is installed, required for Newman
     }
 
     stages {
