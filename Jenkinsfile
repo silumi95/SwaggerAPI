@@ -38,22 +38,38 @@ pipeline {
                     // Run the Postman collection using Newman with both CLI and JUnit reporting
                     def newmanOutput = bat(script: "newman run ${COLLECTION_PATH} --reporters cli,junit --reporter-junit-export newman/report.xml", returnStdout: true).trim()
 
-                    // Print the full output to Jenkins console to inspect the format
+                    // Debug: Print the full output of the Newman run
                     echo "Newman Output:\n${newmanOutput}"
 
-                    // Optional: Process the output to count passed, failed, and skipped tests
+                    // Debug: Check if JUnit XML report was created
+                    if (fileExists('newman/report.xml')) {
+                        echo "JUnit report file generated."
+                    } else {
+                        echo "No JUnit report file generated. Something went wrong with Newman."
+                    }
+
+                    // Initialize counters for test results
                     def passedTests = 0
                     def failedTests = 0
                     def skippedTests = 0
 
-                    // Check if the output contains test statuses and increment the counters accordingly
+                    // Process the Newman output to count passed, failed, and skipped tests
                     newmanOutput.split("\n").each { line ->
+                        // Clean the line by removing odd characters like ✔ (check mark), ✘ (cross mark), ⚠ (warning symbol)
+                        def cleanedLine = line.replaceAll('[✔✘⚠]', '').trim()
+
+                        // Check the cleaned line for pass/fail/skipped status based on text
                         if (line.contains('✔')) { passedTests++ }  // Passed tests contain a checkmark (✔)
                         if (line.contains('✘')) { failedTests++ }  // Failed tests contain a cross (✘)
                         if (line.contains('⚠')) { skippedTests++ }  // Skipped tests contain a warning (⚠)
+
+                        // Optionally, print the cleaned test result
+                        if (cleanedLine) {
+                            echo "Test Result: ${cleanedLine}"
+                        }
                     }
 
-                    // Ensure the output contains a summary (sometimes Newman output might not include a simple table)
+                    // Print the summary in a table format
                     echo """
                     Test Results Summary:
                     +------------------+---------+
@@ -64,7 +80,7 @@ pipeline {
                     | Skipped          | ${skippedTests}  |
                     +------------------+---------+
                     """
-                    
+
                     // Check if there are any failed tests and fail the build if needed
                     if (failedTests > 0) {
                         error "There are failing tests."
@@ -77,6 +93,9 @@ pipeline {
             steps {
                 // Publish the JUnit test results for Jenkins to process and show in the test results page
                 junit '**/newman/report.xml'
+
+                // Debugging: Ensure the JUnit report is being processed correctly
+                echo "JUnit results published"
             }
         }
     }
