@@ -49,12 +49,12 @@ pipeline {
                             try {
                                 // Extract response time (e.g., "45ms")
                                 def responseTimeMatch = (line =~ /(\d+ms)/)
-                                def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : null
+                                def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
 
-                                // Extract HTTP method and endpoint (e.g., "POST https://example.com/api")
+                                // Match HTTP method and endpoint (e.g., "POST https://example.com/api")
                                 def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
-                                def method = methodEndpointMatch ? methodEndpointMatch[0][1] : null
-                                def endpoint = methodEndpointMatch ? methodEndpointMatch[0][2] : null
+                                def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
+                                def endpoint = methodEndpointMatch ? methodEndpointMatch[0][2] : 'Unknown'
 
                                 // Skip this line if any required data is missing
                                 if (!responseTime || !method || !endpoint) {
@@ -81,6 +81,7 @@ pipeline {
 
                                 // Append the formatted data to the table output
                                 tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
+
                             } catch (Exception e) {
                                 // Log the error and skip the problematic line
                                 echo "Error processing line: ${line}. Skipping..."
