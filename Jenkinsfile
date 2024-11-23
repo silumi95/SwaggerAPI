@@ -1,44 +1,45 @@
 pipeline {
     agent any
-    environment {
-        POSTMAN_API_KEY = credentials('POSTMAN_API_KEY') // Use credentials for sensitive information
-    }
+    
     stages {
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                echo 'Cloning Repository...'
-                git url: 'https://github.com/silumi95/SwaggerAPI.git', branch: 'main'
+                // Checkout the repository from GitHub
+                git 'https://github.com/silumi95/SwaggerAPI.git'  // Update with your repo URL
             }
         }
+        
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Dependencies...'
-                powershell '''
-                    npm install -g newman newman-reporter-htmlextra
-                '''
+                script {
+                    // Install Node.js and Newman if not installed (you may skip this if Node.js and Newman are already installed on the Jenkins server)
+                    sh 'npm install -g newman'  // Install Newman
+                }
             }
         }
-        stage('Run Postman Collection') {
+        
+        stage('Run Postman Tests') {
             steps {
-                echo 'Running Postman Collection...'
-                powershell '''
-                    newman run SwaggerPetstore.postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export reports/newman-report.html
-                '''
-            }
-        }
-        stage('Archive Reports') {
-            steps {
-                echo 'Archiving Newman Report...'
-                archiveArtifacts artifacts: 'reports/*.html', allowEmptyArchive: true
+                script {
+                    // Run the Postman collection using Newman
+                    sh 'newman run SwaggerAPI/postman_collection.json'  // Path to your Postman collection file
+                }
             }
         }
     }
+    
     post {
-        success {
-            echo 'Pipeline completed successfully!'
+        always {
+            // You can add actions like cleaning up or notifications here if needed
+            echo 'Postman tests executed.'
         }
+        
+        success {
+            echo 'Tests passed successfully!'
+        }
+        
         failure {
-            echo 'Pipeline failed. Check logs for errors.'
+            echo 'Tests failed!'
         }
     }
 }
