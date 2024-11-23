@@ -38,8 +38,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint | Status   | Response Time | Pet Name         |
-|-------------|--------------|----------|---------------|------------------|
+| HTTP Method | API Endpoint | Status | Response Time | Pet Name |
+|-------------|--------------|--------|---------------|----------|
 """
 
                     // Split the output into lines for parsing
@@ -53,25 +53,25 @@ pipeline {
                             def responseTimeMatch = (line =~ /(\d+ms)/)
                             def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
 
-                            // Capture the HTTP method and endpoint
-                            def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
-                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
-                            def endpoint = methodEndpointMatch ? methodEndpointMatch[0][2] : 'Unknown'
+                            // Try to capture the HTTP method and endpoint (assuming it's in the line starting with the method)
+                            def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
 
                             // Shorten the endpoint to just the base path (remove any trailing segments after the first slash and any query parameters)
-                            def baseEndpoint = endpoint.split('/')[0..2].join('/')
+                            def splitEndpoint = endpoint.split('/')
+                            def baseEndpoint = splitEndpoint[0..Math.min(2, splitEndpoint.size() - 1)].join('/')
 
                             // If the baseEndpoint is still too long, shorten it to the first 20 characters
                             def shortenedEndpoint = baseEndpoint.length() > 20 ? baseEndpoint.substring(0, 20) + "..." : baseEndpoint
 
                             // Extract pet name if available (customize based on your actual response content)
-                            def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : (line.contains('Fluffy') ? 'Fluffy' : 'Unknown')
+                            def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : 'Fluffy'
 
                             // Status based on response time or other indicators (use success or failure based on response)
                             def status = line.contains('200 OK') ? 'Success' : 'Failed'
 
                             // Append the data to the table output
-                            tableOutput += "| ${method} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
+                            tableOutput += "| ${endpoint.split(' ')[0]} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
                         }
                     }
 
