@@ -24,7 +24,7 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 script {
-                    // Run the Postman collection using Newman
+                    // Run the Postman collection using Newman with the CLI reporter
                     bat "newman run ${COLLECTION_PATH} --reporters cli"
                 }
             }
