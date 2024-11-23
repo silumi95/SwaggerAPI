@@ -39,8 +39,10 @@ pipeline {
         stage('Display Test Results') {
             steps {
                 script {
-                    // Parse the JSON result file
-                    def resultJson = readJSON file: RESULT_PATH
+                    // Read the JSON result file using readFile and Groovy's JsonSlurper
+                    def jsonContent = readFile(RESULT_PATH)
+                    def jsonSlurper = new groovy.json.JsonSlurper()
+                    def resultJson = jsonSlurper.parseText(jsonContent)
 
                     // Output results as a table to the console
                     echo "\nTest Results:"
