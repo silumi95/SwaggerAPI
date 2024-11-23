@@ -16,8 +16,12 @@ pipeline {
 
         stage('Install Node.js') {
             steps {
-                // Install Node.js if not already installed (optional)
-                bat 'npm install -g node'
+                script {
+                    // Install Node.js only if it's not already installed on the agent
+                    if (!isNodeInstalled()) {
+                        bat 'npm install -g node'
+                    }
+                }
             }
         }
 
@@ -83,5 +87,15 @@ pipeline {
             // Final steps, for cleanup or notifications
             echo 'Pipeline finished'
         }
+    }
+}
+
+// Helper function to check if Node.js is installed (Windows equivalent)
+def isNodeInstalled() {
+    try {
+        bat 'node -v'
+        return true
+    } catch (Exception e) {
+        return false
     }
 }
