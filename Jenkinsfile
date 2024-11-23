@@ -37,13 +37,13 @@ pipeline {
                     // Print the Newman output to the console (for reference)
                     echo "Newman Output:\n${newmanOutput}"
 
-                    // Optionally, you can parse the output to display in a tabular format
-                    // Simple example: Parse for some key metrics (like passed, failed, and skipped)
-                    
-                    // Count number of passed, failed, skipped tests
-                    def passedTests = newmanOutput.count { it.contains('✓') }  // Passed tests contain a tick (✓)
-                    def failedTests = newmanOutput.count { it.contains('✘') }  // Failed tests contain a cross (✘)
-                    def skippedTests = newmanOutput.count { it.contains('⚠') }  // Skipped tests contain a warning (⚠)
+                    // Split the output by lines
+                    def outputLines = newmanOutput.split("\n")
+
+                    // Count passed, failed, and skipped tests based on the symbols used in the output
+                    def passedTests = outputLines.count { it.contains('✓') }  // Passed tests contain a tick (✓)
+                    def failedTests = outputLines.count { it.contains('✘') }  // Failed tests contain a cross (✘)
+                    def skippedTests = outputLines.count { it.contains('⚠') }  // Skipped tests contain a warning (⚠)
 
                     // Print the table to console
                     echo """
