@@ -99,8 +99,12 @@ def isNodeInstalled() {
 
 // Helper function to shorten the endpoint (base path)
 def getBasePath(String endpoint) {
-    def basePath = endpoint.split('/')[0..2].join('/') // Extract base path (first 3 segments)
+    // Split the URL by '/'
+    def segments = endpoint.split('/')
 
-    // If base path exceeds 20 characters, shorten it with ellipsis
-    return basePath.length() > 20 ? basePath.substring(0, 20) + "..." : basePath
-}
+    // If there are fewer than 3 segments, return the whole URL (or first few segments)
+    if (segments.size() < 3) {
+        return endpoint
+    }
+
+    // Otherwise, return the first three segments joined b
