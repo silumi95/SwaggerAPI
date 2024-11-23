@@ -4,6 +4,7 @@ pipeline {
     environment {
         // Define the path to your Postman collection in the GitHub repo
         COLLECTION_PATH = 'SwaggerPetstore.postman_collection.json'
+        RESULT_PATH = 'newman-results.json'  // Path for saving JSON results
     }
 
     stages {
@@ -24,9 +25,16 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 script {
-                    // Run the Postman collection using Newman with the CLI reporter
-                    bat "newman run ${COLLECTION_PATH} --reporters cli"
+                    // Run the Postman collection using Newman with the JSON reporter
+                    bat "newman run ${COLLECTION_PATH} --reporters cli,json --reporter-json-export ${RESULT_PATH}"
                 }
+            }
+        }
+
+        stage('Publish Results') {
+            steps {
+                // Archive the JSON results as artifacts in Jenkins (optional for further use)
+                archiveArtifacts artifacts: 'newman-results.json', allowEmptyArchive: true
             }
         }
     }
