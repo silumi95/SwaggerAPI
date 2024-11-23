@@ -61,24 +61,23 @@ pipeline {
                             def shortenedEndpoint = getBasePath(endpoint)
                             def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
-                           // Define the maximum length for each column to ensure proper alignment
-def methodWidth = 10
-def endpointWidth = 30
-def statusWidth = 7
-def responseTimeWidth = 15
+                            // Only append if the method, endpoint, and response time are not "Unknown" or "N/A"
+                            if (method != 'Unknown' && endpoint != 'Unknown' && responseTime != 'N/A') {
+                                // Define the maximum length for each column to ensure proper alignment
+                                def methodWidth = 10
+                                def endpointWidth = 30
+                                def statusWidth = 7
+                                def responseTimeWidth = 15
 
-// Format the data to match the column widths
-def formattedMethod = method.padRight(methodWidth)
-def formattedEndpoint = shortenedEndpoint.padRight(endpointWidth)
-def formattedStatus = status.padRight(statusWidth)
-def formattedResponseTime = responseTime.padRight(responseTimeWidth)
+                                // Format the data to match the column widths
+                                def formattedMethod = method.padRight(methodWidth)
+                                def formattedEndpoint = shortenedEndpoint.padRight(endpointWidth)
+                                def formattedStatus = status.padRight(statusWidth)
+                                def formattedResponseTime = responseTime.padRight(responseTimeWidth)
 
-// Append the formatted data to the table output
-tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
-if (index == lines.size() - 1) {
-                return // This ends the loop
-            }
-
+                                // Append the formatted data to the table output
+                                tableOutput += "| ${formattedMethod}| ${formattedEndpoint}| ${formattedStatus}| ${formattedResponseTime} |\n"
+                            }
                         }
                     }
 
