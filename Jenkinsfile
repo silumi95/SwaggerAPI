@@ -52,9 +52,9 @@ pipeline {
 
                             // Match HTTP method and endpoint using improved regex
                             def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
-                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
+                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : null
                             def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
-                            def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
+                            def endpoint = endpointMatch ? endpointMatch[0][2] : null
 
                             // Extract base path (up to the first three segments of the URL)
                             def shortenedEndpoint = getBasePath(endpoint)
