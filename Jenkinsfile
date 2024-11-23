@@ -38,8 +38,8 @@ pipeline {
 
                     // Initialize the table with headers
                     def tableOutput = """
-| HTTP Method | API Endpoint               | Status   | Response Time | Pet Name         |
-|-------------|----------------------------|----------|---------------|------------------|
+| HTTP Method | API Endpoint | Status   | Response Time | Pet Name         |
+|-------------|--------------|----------|---------------|------------------|
 """
 
                     // Split the output into lines for parsing
@@ -48,7 +48,7 @@ pipeline {
                     // Iterate over the lines to extract relevant details
                     lines.each { line ->
                         // Only process lines containing HTTP method, status code, and response time
-                        if (line.contains('ms]') && (line.contains('POST') || line.contains('GET') || line.contains('PUT') || line.contains('DELETE'))) {
+                        if (line.contains('ms]')) {
                             // Extract response time (between 'ms]' and 'ms')
                             def responseTimeMatch = (line =~ /(\d+ms)/)
                             def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
@@ -58,8 +58,11 @@ pipeline {
                             def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
                             def endpoint = methodEndpointMatch ? methodEndpointMatch[0][2] : 'Unknown'
 
-                            // Shorten the endpoint to a maximum of 20 characters (or any other limit you prefer)
-                            def shortenedEndpoint = endpoint.length() > 20 ? endpoint.substring(0, 20) + "..." : endpoint
+                            // Shorten the endpoint to just the base path (remove any trailing segments after the first slash and any query parameters)
+                            def baseEndpoint = endpoint.split('/')[0..2].join('/')
+
+                            // If the baseEndpoint is still too long, shorten it to the first 20 characters
+                            def shortenedEndpoint = baseEndpoint.length() > 20 ? baseEndpoint.substring(0, 20) + "..." : baseEndpoint
 
                             // Extract pet name if available (customize based on your actual response content)
                             def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : (line.contains('Fluffy') ? 'Fluffy' : 'Unknown')
