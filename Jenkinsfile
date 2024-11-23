@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     // Run the Newman collection and generate the report
-                    sh 'newman run SwaggerPetstore.postman_collection.json --reporters cli,junit --reporter-junit-export newman/report.xml > newman_output.txt'
+                    bat 'newman run SwaggerPetstore.postman_collection.json --reporters cli,junit --reporter-junit-export newman/report.xml > newman_output.txt'
 
                     // Read the Newman output from the file
                     def newmanOutput = readFile('newman_output.txt')
