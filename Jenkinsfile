@@ -1,31 +1,24 @@
 pipeline {
     agent any
-    environment {
-        POSTMAN_API_KEY = credentials('POSTMAN_API_KEY')
+    
+    tools {
+        git 'Git'  // Refer to the Git tool you configured
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                echo 'Cloning Repository...'
-                git url: 'https://github.com/silumi95/SwaggerAPI.git', branch: 'main'
+                git 'https://github.com/silumi95/SwaggerAPI.git'
             }
         }
-        stage('Run Postman Collection') {
+
+        stage('Run Postman Tests') {
             steps {
-                echo 'Running Postman Collection...'
-                powershell '''
-                    npm install -g newman newman-reporter-htmlextra
-                    newman run SwaggerPetstore.postman_collection.json --reporters cli,htmlextra
-                '''
+                script {
+                    // Run Postman collection using Newman (if Node.js and Newman are installed)
+                    bat 'newman run SwaggerAPI/postman_collection.json'
+                }
             }
-        }
-    }
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Check logs for errors.'
         }
     }
 }
