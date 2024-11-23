@@ -1,45 +1,31 @@
 pipeline {
     agent any
-    
+    environment {
+        POSTMAN_API_KEY = credentials('POSTMAN_API_KEY')
+    }
     stages {
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                // Clone the GitHub repository containing your Postman collection
-                git 'https://github.com/silumi95/SwaggerAPI.git'  // Replace with your GitHub repo URL
+                echo 'Cloning Repository...'
+                git url: 'https://github.com/silumi95/SwaggerAPI.git', branch: 'main'
             }
         }
-        
-        stage('Install Dependencies') {
+        stage('Run Postman Collection') {
             steps {
-                script {
-                    // Install Node.js and Newman if not installed
-                    bat 'npm install -g newman'  // This is for running the command on Windows (use 'bat' for Windows)
-                }
-            }
-        }
-        
-        stage('Run Postman Tests') {
-            steps {
-                script {
-                    // Run the Postman collection using Newman
-                    bat 'newman run SwaggerAPI/postman_collection.json'  // Path to your Postman collection file
-                }
+                echo 'Running Postman Collection...'
+                powershell '''
+                    npm install -g newman newman-reporter-htmlextra
+                    newman run SwaggerPetstore.postman_collection.json --reporters cli,htmlextra
+                '''
             }
         }
     }
-    
     post {
-        always {
-            // Add actions to be performed after the pipeline (e.g., notifications, cleanup, etc.)
-            echo 'Postman tests executed.'
-        }
-        
         success {
-            echo 'Tests passed successfully!'
+            echo 'Pipeline completed successfully!'
         }
-        
         failure {
-            echo 'Tests failed!'
+            echo 'Pipeline failed. Check logs for errors.'
         }
     }
 }
