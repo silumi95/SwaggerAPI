@@ -31,19 +31,49 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 script {
-                    // Run the Postman collection using Newman with CLI and JUnit reporter
-                    bat "newman run ${COLLECTION_PATH} --reporters cli,junit --reporter-junit-export newman/report.xml"
+                    // Run the Postman collection using Newman with both CLI and JUnit reporting
+                    def newmanOutput = bat(script: "newman run ${COLLECTION_PATH} --reporters cli,junit --reporter-junit-export newman/report.xml", returnStdout: true).trim()
+
+                    // Print the full output to Jenkins console to inspect the format
+                    echo "Newman Output:\n${newmanOutput}"
+
+                    // Optional: You can add custom logic to handle the results further.
+                    // If you'd like, you can count passed, failed, and skipped tests here again:
+                    def passedTests = 0
+                    def failedTests = 0
+                    def skippedTests = 0
+
+                    // Here we process the results if you'd like to output them in a table format
+                    newmanOutput.split("\n").each { line ->
+                        if (line.contains('✔')) { passedTests++ }  // Passed tests contain a checkmark (✔)
+                        if (line.contains('✘')) { failedTests++ }  // Failed tests contain a cross (✘)
+                        if (line.contains('⚠')) { skippedTests++ }  // Skipped tests contain a warning (⚠)
+                    }
+
+                    // Print the summary to Jenkins console
+                    echo """
+                    Test Results Summary:
+                    +------------------+---------+
+                    | Test Status      | Count   |
+                    +------------------+---------+
+                    | Passed           | ${passedTests}   |
+                    | Failed           | ${failedTests}   |
+                    | Skipped          | ${skippedTests}  |
+                    +------------------+---------+
+                    """
                     
-                    // Print the result to the Jenkins console for debugging purposes (optional)
-                    echo "Newman tests have finished running"
+                    // Check if there are any failed tests and fail the build if needed
+                    if (failedTests > 0) {
+                        error "There are failing tests."
+                    }
                 }
             }
         }
 
         stage('Publish Test Results') {
             steps {
-                // Publish JUnit test results to Jenkins
-                junit '**/newman/report.xml'  // Adjust path if necessary
+                // Publish the JUnit test results for Jenkins to process and show in the test results page
+                junit '**/newman/report.xml'
             }
         }
     }
