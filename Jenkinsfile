@@ -107,4 +107,9 @@ def getBasePath(String endpoint) {
         return endpoint
     }
 
-    // Otherwise, return the first three segments joined b
+    // Otherwise, return the first three segments joined by '/'
+    def basePath = segments[0..2].join('/')
+
+    // If base path exceeds 20 characters, shorten it with ellipsis
+    return basePath.length() > 20 ? basePath.substring(0, 20) + "..." : basePath
+}
