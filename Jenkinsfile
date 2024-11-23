@@ -54,8 +54,8 @@ pipeline {
                             def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
                             def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
 
-                            // Shorten the endpoint if it exceeds 20 characters
-                            def shortenedEndpoint = shortenEndpoint(endpoint)
+                            // Extract base path (up to the first three segments of the URL)
+                            def shortenedEndpoint = getBasePath(endpoint)
 
                             // Handle Pet Name and Status
                             def petName = 'Fluffy' // Default pet name (customize based on your actual response)
@@ -97,11 +97,10 @@ def isNodeInstalled() {
     }
 }
 
-// Helper function to shorten the endpoint
-def shortenEndpoint(String endpoint) {
-    def splitEndpoint = endpoint.split('/')
-    def baseEndpoint = splitEndpoint[0..Math.min(2, splitEndpoint.size() - 1)].join('/')
+// Helper function to shorten the endpoint (base path)
+def getBasePath(String endpoint) {
+    def basePath = endpoint.split('/')[0..2].join('/') // Extract base path (first 3 segments)
 
-    // If baseEndpoint exceeds 20 characters, shorten it with ellipsis
-    return baseEndpoint.length() > 20 ? baseEndpoint.substring(0, 20) + "..." : baseEndpoint
+    // If base path exceeds 20 characters, shorten it with ellipsis
+    return basePath.length() > 20 ? basePath.substring(0, 20) + "..." : basePath
 }
