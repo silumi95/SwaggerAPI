@@ -51,6 +51,8 @@ pipeline {
                             def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
 
                             // Match HTTP method and endpoint using improved regex
+                            def methodEndpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            def method = methodEndpointMatch ? methodEndpointMatch[0][1] : 'Unknown'
                             def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
                             def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
 
@@ -59,10 +61,10 @@ pipeline {
 
                             // Handle Pet Name and Status
                             def petName = 'Fluffy' // Default pet name (customize based on your actual response)
-                            def status = line.contains('200 OK') ? 'Success' : 'Failed'
+                            def status = line.contains('200 OK') ? 'Pass' : 'Fail'
 
                             // Append the data to the table output
-                            tableOutput += "| ${endpoint.split(' ')[0]} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
+                            tableOutput += "| ${method} | ${shortenedEndpoint} | ${status} | ${responseTime} | ${petName} |\n"
                         }
                     }
 
