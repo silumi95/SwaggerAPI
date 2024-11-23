@@ -1,43 +1,40 @@
-Here’s a **README.md** file tailored to your pipeline, providing detailed instructions for running it on a new machine. 
+Sure! Here's the updated `README.md` with the information placed correctly under **Set Up Jenkins Job**, as requested:
 
 ---
 
-# **Swagger API Pipeline Setup and Execution**
+# Swagger API Pipeline Setup and Execution
 
-This repository contains a Jenkins pipeline to automate the execution of Postman collections using Newman. The pipeline also installs required dependencies like Node.js and Newman if they are not already present.
+This repository contains a Jenkins pipeline to automate the execution of Postman collections using Newman. The pipeline installs the required dependencies like Node.js and Newman if they are not already present.
 
----
-
-## **Prerequisites**
+## Prerequisites
 
 Ensure the following prerequisites are met on the new machine before running the pipeline:
 
-### **1. Install Jenkins**
-- Download and install Jenkins from [Jenkins Official Website](https://www.jenkins.io/download/).
+### 1. Install Jenkins
+- Download and install Jenkins from the [Jenkins Official Website](https://www.jenkins.io/download/).
 - Ensure Jenkins is up and running on the machine.
 - Install the following Jenkins plugins:
   - **Pipeline**
   - **JUnit**
   - **Git**
 
-### **2. Install Node.js**
-- Download and install Node.js (LTS version recommended) from [Node.js Official Website](https://nodejs.org/).
+### 2. Install Node.js
+- Download and install Node.js (LTS version recommended) from the [Node.js Official Website](https://nodejs.org/).
 - Verify installation:
   ```bash
   node -v
   npm -v
   ```
+  Alternatively, you can allow the pipeline to attempt Node.js installation, but manual installation is recommended for reliability.
 
-Alternatively, you can allow the pipeline to attempt Node.js installation, but manual installation is recommended for reliability.
-
-### **3. Install Git**
-- Install Git from [Git Official Website](https://git-scm.com/).
+### 3. Install Git
+- Install Git from the [Git Official Website](https://git-scm.com/).
 - Verify installation:
   ```bash
   git --version
   ```
 
-### **4. Newman (Optional)**
+### 4. Newman (Optional)
 - The pipeline installs Newman globally if it's not present. However, you can install it manually:
   ```bash
   npm install -g newman
@@ -45,95 +42,104 @@ Alternatively, you can allow the pipeline to attempt Node.js installation, but m
 
 ---
 
-## **Pipeline Overview**
+## Pipeline Overview
 
 The Jenkins pipeline automates the following tasks:
-1. Clones the repository from GitHub.
-2. Installs Node.js (if not already installed).
-3. Installs Newman globally via npm.
-4. Executes the Postman collection using Newman.
-5. Generates a JUnit report for test results.
+
+1. **Clones the repository** from GitHub.
+2. **Installs Node.js** (if not already installed).
+3. **Installs Newman** globally via npm.
+4. **Executes the Postman collection** using Newman.
+5. **Generates a JUnit report** for test results.
+
+### Key stages of the pipeline:
+
+1. **Checkout**: Automatically clones the repository from GitHub using the `git` command.
+2. **Install Node.js**: Automatically installs Node.js if it is not already installed. The pipeline checks the system and runs `npm install -g node` if needed.
+3. **Install Newman**: Automatically installs Newman globally using `npm install -g newman`.
+4. **Run Postman Collection**: Runs the Postman collection (`SwaggerPetstore.postman_collection.json`) using Newman, generating both CLI and JUnit reports. The output is saved in `newman_output.txt`, and a formatted table of results is displayed in the Jenkins console.
+5. **Publish Test Results**: Publishes the generated JUnit test report (`newman/report.xml`) to Jenkins, where test results can be viewed in the "Test Result" section.
 
 ---
 
-## **Setup Instructions**
+## Set Up Jenkins Job
 
-Follow these steps to set up and run the pipeline on a new machine:
+### 1. Job Configuration
 
-### **1. Clone the Repository**
-1. Open a terminal and clone the repository:
-   ```bash
-   git clone https://github.com/silumi95/SwaggerAPI.git
-   ```
-2. Navigate to the cloned repository:
-   ```bash
-   cd SwaggerAPI
-   ```
+#### Job Configuration Description
+This Jenkins job automates the process of running Postman collections via Newman, with all necessary dependencies (Node.js and Newman) installed dynamically. The configuration ensures that the pipeline runs smoothly from GitHub, through Newman execution, to generating the reports.
 
-### **2. Set Up Jenkins Job**
-1. Open Jenkins in your browser (e.g., `http://localhost:8080`).
-2. Create a new **Pipeline Job**:
-   - **Job Type**: Pipeline.
-   - **Pipeline Definition**: Use the **Pipeline script from SCM** option.
-   - **Repository URL**: `https://github.com/silumi95/SwaggerAPI.git`.
-   - **Branch**: `main`.
+#### GitHub Project
+- **Project URL**: [https://github.com/silumi95/SwaggerAPI.git](https://github.com/silumi95/SwaggerAPI.git)
 
-3. Save the job.
+#### Build Trigger
+- **Trigger**: GitHub hook trigger for GIT SCM polling  
+  This will automatically trigger a build whenever there are changes to the GitHub repository.
 
-### **3. Configure Pipeline Parameters**
-- Ensure the Postman collection file (`SwaggerPetstore.postman_collection.json`) is in the repository's root directory.
-- Update the pipeline script if:
-  - You need to specify a custom Postman environment file.
-  - Collection names or paths differ.
+#### Pipeline Definition
+- **SCM**: Git  
+- **Repository URL**: [https://github.com/silumi95/SwaggerAPI.git](https://github.com/silumi95/SwaggerAPI.git)  
+- **Credentials**: None (as there are no private repositories involved)  
+- **Branches to build**: `refs/heads/main`
+
+#### Script Path
+- **Script Path**: `Jenkinsfile`  
+  The pipeline script is located in the `Jenkinsfile` at the root of the repository.
 
 ---
 
-## **Run the Pipeline**
+## Run the Pipeline
 
 1. Trigger the Jenkins job manually by clicking **Build Now**.
-2. Monitor the job's progress in the Jenkins console output.
+2. Monitor the job's progress in the Jenkins console output. The job will automatically:
+   - Clone the repository
+   - Install Node.js (if not present)
+   - Install Newman (if not present)
+   - Run the Postman collection using Newman
+   - Generate and display the results in the console
+   - Publish JUnit test results for review
 
 ---
 
-## **Troubleshooting**
+## Troubleshooting
 
-### **1. Node.js Installation Fails**
+### 1. Node.js Installation Fails
 If Node.js is not installed and the pipeline fails to install it:
 - Manually install Node.js as mentioned in the prerequisites.
 
-### **2. Newman Not Found**
+### 2. Newman Not Found
 Ensure npm is correctly installed, and run the following manually:
 ```bash
 npm install -g newman
 ```
 
-### **3. Collection Execution Issues**
-- Verify the Postman collection file exists in the repository root.
-- Confirm the collection syntax is correct by running it locally:
-  ```bash
-  newman run SwaggerPetstore.postman_collection.json
-  ```
+### 3. Collection Execution Issues
+Verify the Postman collection file exists in the repository root.
+Confirm the collection syntax is correct by running it locally:
+```bash
+newman run SwaggerPetstore.postman_collection.json
+```
 
 ---
 
-## **Pipeline Outputs**
+## Pipeline Outputs
 
-1. **Newman Results**:
-   - CLI and JUnit reports are generated by Newman during execution.
-   - Results are stored as:
-     - **JUnit XML Report**: `newman/report.xml`
-     - **CLI Output**: `newman_output.txt`.
+### Newman Results:
+- CLI and JUnit reports are generated by Newman during execution.
+- Results are stored as:
+  - **JUnit XML Report**: `newman/report.xml`
+  - **CLI Output**: `newman_output.txt`
 
-2. **Jenkins Test Results**:
-   - Jenkins will display test results in the "Test Result" section of the build.
+### Jenkins Test Results:
+- Jenkins will display test results in the "Test Result" section of the build.
 
 ---
 
-## **Future Improvements**
+## Future Improvements
 
 - Use Docker to containerize the pipeline for consistent builds across environments.
 - Enhance error handling in the pipeline to manage missing dependencies dynamically.
 
 ---
 
-By following these instructions, the pipeline should work seamlessly on a new machine.
+This `README.md` provides clear instructions for setting up Jenkins, configuring the pipeline, and troubleshooting common issues. It also ensures that the pipeline automates the process of cloning the repository and running the tests.
