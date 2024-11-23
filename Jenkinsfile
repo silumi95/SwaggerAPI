@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Clone the public GitHub repository from the main branch
                 git branch: 'main', url: 'https://github.com/silumi95/SwaggerAPI.git'
             }
         }
@@ -12,7 +11,7 @@ pipeline {
         stage('Install Node.js') {
             steps {
                 script {
-                    // Install Node.js only if it's not already installed on the agent
+                    // Install Node.js if not already installed
                     if (!isNodeInstalled()) {
                         bat 'npm install -g node'
                     }
@@ -22,7 +21,6 @@ pipeline {
 
         stage('Install Newman') {
             steps {
-                // Install Newman using npm during the pipeline execution
                 bat 'npm install -g newman'
             }
         }
@@ -33,7 +31,7 @@ pipeline {
                     // Run the Newman collection and generate the report
                     bat 'newman run SwaggerPetstore.postman_collection.json --reporters cli,junit --reporter-junit-export newman/report.xml > newman_output.txt'
 
-                    // Read the Newman output from the file
+                    // Read the output from Newman
                     def newmanOutput = readFile('newman_output.txt')
 
                     // Initialize the table with headers
@@ -47,27 +45,20 @@ pipeline {
 
                     // Iterate over the lines to extract relevant details
                     lines.each { line ->
-                        // Only process lines containing HTTP method, status code, and response time
                         if (line.contains('ms]')) {
                             // Extract response time (between 'ms]' and 'ms')
                             def responseTimeMatch = (line =~ /(\d+ms)/)
                             def responseTime = responseTimeMatch ? responseTimeMatch[0][1] : 'N/A'
 
-                            // Try to capture the HTTP method and endpoint (assuming it's in the line starting with the method)
-                            def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+([^\s]+)/)
+                            // Match HTTP method and endpoint using improved regex
+                            def endpointMatch = (line =~ /(POST|PUT|GET|DELETE)\s+(https?:\/\/[^\s]+)/)
                             def endpoint = endpointMatch ? endpointMatch[0][2] : 'Unknown'
 
-                            // Shorten the endpoint to just the base path (remove any trailing segments after the first slash and any query parameters)
-                            def splitEndpoint = endpoint.split('/')
-                            def baseEndpoint = splitEndpoint[0..Math.min(2, splitEndpoint.size() - 1)].join('/')
+                            // Shorten the endpoint if it exceeds 20 characters
+                            def shortenedEndpoint = shortenEndpoint(endpoint)
 
-                            // If the baseEndpoint is still too long, shorten it to the first 20 characters
-                            def shortenedEndpoint = baseEndpoint.length() > 20 ? baseEndpoint.substring(0, 20) + "..." : baseEndpoint
-
-                            // Extract pet name if available (customize based on your actual response content)
-                            def petName = line.contains('Fluffy Updated') ? 'Fluffy Updated' : 'Fluffy'
-
-                            // Status based on response time or other indicators (use success or failure based on response)
+                            // Handle Pet Name and Status
+                            def petName = 'Fluffy' // Default pet name (customize based on your actual response)
                             def status = line.contains('200 OK') ? 'Success' : 'Failed'
 
                             // Append the data to the table output
@@ -75,7 +66,7 @@ pipeline {
                         }
                     }
 
-                    // Print the formatted table in Jenkins console
+                    // Print the table in the Jenkins console
                     echo tableOutput
                 }
             }
@@ -83,10 +74,7 @@ pipeline {
 
         stage('Publish Test Results') {
             steps {
-                // Publish the JUnit test results for Jenkins to process and show in the test results page
                 junit '**/newman/report.xml'
-
-                // Debugging: Ensure the JUnit report is being processed correctly
                 echo "JUnit results published"
             }
         }
@@ -94,7 +82,6 @@ pipeline {
 
     post {
         always {
-            // Final steps, for cleanup or notifications
             echo 'Pipeline finished'
         }
     }
@@ -108,4 +95,13 @@ def isNodeInstalled() {
     } catch (Exception e) {
         return false
     }
+}
+
+// Helper function to shorten the endpoint
+def shortenEndpoint(String endpoint) {
+    def splitEndpoint = endpoint.split('/')
+    def baseEndpoint = splitEndpoint[0..Math.min(2, splitEndpoint.size() - 1)].join('/')
+
+    // If baseEndpoint exceeds 20 characters, shorten it with ellipsis
+    return baseEndpoint.length() > 20 ? baseEndpoint.substring(0, 20) + "..." : baseEndpoint
 }
